@@ -787,6 +787,16 @@ measures:
         type: exact
         places: 2
 
+  - name: pct_of_product_family_revenue_fixed_lod
+    expr: MEASURE(actual_revenue) / NULLIF(ANY_VALUE(product_family_revenue_lod), 0)
+    comment: Fixed LOD percentage using product-family denominator.
+    display_name: Percent of Product Family Revenue
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 2
+
   - name: all_account_categories_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
     window:
@@ -838,6 +848,35 @@ measures:
         type: exact
         places: 2
 
+  - name: revenue_excluding_entity_and_product_family
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: entity_name
+        range: all
+        semiadditive: last
+      - order: product_family
+        range: all
+        semiadditive: last
+    comment: Coarser LOD denominator that excludes multiple fields from the query grain.
+    display_name: Revenue Excluding Entity and Product Family
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
+  - name: pct_of_entity_product_visible_total
+    expr: MEASURE(actual_revenue) / NULLIF(MEASURE(revenue_excluding_entity_and_product_family), 0)
+    comment: Demonstrates excluding multiple fields with range all.
+    display_name: Percent of Entity/Product Visible Total
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 2
+
   - name: current_month_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
     window:
@@ -874,6 +913,22 @@ measures:
       - year to date sales
       - ytd sales
 
+  - name: running_total_revenue
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: cumulative
+        semiadditive: last
+    comment: Cumulative revenue across the full available time range.
+    display_name: Running Total Revenue
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
   - name: rolling_12_month_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
     window:
@@ -891,6 +946,54 @@ measures:
     synonyms:
       - r12 revenue
       - trailing twelve month revenue
+
+  - name: trailing_3_month_revenue_exclusive
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: trailing 3 month exclusive
+        semiadditive: last
+    comment: Trailing 3 months excluding the anchor month.
+    display_name: Trailing 3 Month Revenue Exclusive
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
+  - name: trailing_3_month_revenue_inclusive
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: trailing 3 month inclusive
+        semiadditive: last
+    comment: Trailing 3 months including the anchor month.
+    display_name: Trailing 3 Month Revenue Inclusive
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
+  - name: next_month_revenue
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: leading 1 month
+        semiadditive: first
+    comment: Leading window example. Returns the next month's revenue when grouped by fiscal month.
+    display_name: Next Month Revenue
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
 
   - name: prior_year_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
@@ -978,7 +1081,66 @@ print(f"{catalog}.{schema}.finance_metric_view")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 5. Validate the Metric View Definition
+# MAGIC ## 5. Create a Derived Metric View
+# MAGIC
+# MAGIC Metric View composability works both within a single Metric View and across Metric Views. This derived view uses `finance_metric_view` as its source and defines executive metrics from the governed measures.
+
+# COMMAND ----------
+
+spark.sql(
+    f"""
+CREATE OR REPLACE VIEW {qualified_schema}.finance_exec_metric_view
+WITH METRICS
+LANGUAGE YAML
+AS $$
+version: 1.1
+comment: |-
+  Derived executive Metric View that demonstrates composability across Metric Views.
+source: {catalog}.{schema}.finance_metric_view
+fields:
+  - name: fiscal_month
+    expr: fiscal_month
+    display_name: Fiscal Month
+  - name: fiscal_year
+    expr: fiscal_year
+    display_name: Fiscal Year
+  - name: region
+    expr: region
+    display_name: Region
+  - name: entity_name
+    expr: entity_name
+    display_name: Entity
+measures:
+  - name: revenue_per_transaction
+    expr: MEASURE(actual_revenue) / NULLIF(MEASURE(transaction_count), 0)
+    comment: Derived from measures in the source Metric View.
+    display_name: Revenue per Transaction
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+  - name: executive_score
+    expr: MEASURE(ebitda_margin_pct) + MEASURE(revenue_variance_pct)
+    comment: Toy composite score to show cross-Metric-View measure composition.
+    display_name: Executive Score
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 4
+$$
+"""
+)
+
+print("Created derived Metric View:")
+print(f"{catalog}.{schema}.finance_exec_metric_view")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 6. Validate the Metric View Definition
 
 # COMMAND ----------
 
@@ -987,7 +1149,7 @@ display(spark.sql("DESCRIBE EXTENDED finance_metric_view"))
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 6. LOD: Fixed Level of Detail
+# MAGIC ## 7. LOD: Fixed Level of Detail
 # MAGIC
 # MAGIC Fixed LOD uses a predefined calculation grain. In this tutorial, `global_revenue_lod` and `account_category_revenue_lod` are fields defined with SQL window functions.
 
@@ -1013,7 +1175,34 @@ ORDER BY region, account_category
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 7. LOD: Coarser Level of Detail
+# MAGIC ### Fixed LOD Filtering Behavior
+# MAGIC
+# MAGIC Fixed LOD fields are computed before query-time filters. This query filters to APJ, but the global denominator still represents the fixed global calculation defined inside the Metric View field expression.
+
+# COMMAND ----------
+
+display(
+    spark.sql(
+        """
+SELECT
+  region,
+  product_family,
+  MEASURE(actual_revenue) AS actual_revenue,
+  MEASURE(pct_of_global_revenue_fixed_lod) AS pct_of_global_revenue,
+  MEASURE(pct_of_product_family_revenue_fixed_lod) AS pct_of_product_family_revenue
+FROM finance_metric_view
+WHERE fiscal_year = 2025
+  AND region = 'APJ'
+GROUP BY ALL
+ORDER BY product_family
+"""
+    )
+)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 8. LOD: Coarser Level of Detail
 # MAGIC
 # MAGIC Coarser LOD uses window measures with `range: all` to calculate at a broader grain than the query. This lets the denominator remain aware of query-time filters.
 
@@ -1039,9 +1228,37 @@ ORDER BY region, entity_revenue DESC
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 8. Window Semantics
+# MAGIC ### Coarser LOD With Multiple Excluded Fields
 # MAGIC
-# MAGIC The next query shows monthly, YTD, rolling-12, prior-year, and YoY revenue in one semantic model.
+# MAGIC To exclude multiple fields from the calculation grain, add multiple `window` entries with `range: all`. The denominator below excludes both `entity_name` and `product_family` while preserving filters such as fiscal year and region.
+
+# COMMAND ----------
+
+display(
+    spark.sql(
+        """
+SELECT
+  region,
+  entity_name,
+  product_family,
+  MEASURE(actual_revenue) AS actual_revenue,
+  MEASURE(revenue_excluding_entity_and_product_family) AS broader_revenue,
+  MEASURE(pct_of_entity_product_visible_total) AS pct_of_entity_product_visible_total
+FROM finance_metric_view
+WHERE fiscal_year = 2025
+  AND region = 'APJ'
+GROUP BY ALL
+ORDER BY entity_name, product_family
+"""
+    )
+)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 9. Window Semantics
+# MAGIC
+# MAGIC The next query shows current, cumulative, YTD, rolling-12, prior-year, leading, and YoY revenue in one semantic model.
 
 # COMMAND ----------
 
@@ -1052,8 +1269,10 @@ SELECT
   fiscal_month,
   region,
   MEASURE(current_month_revenue) AS current_month_revenue,
+  MEASURE(running_total_revenue) AS running_total_revenue,
   MEASURE(ytd_revenue) AS ytd_revenue,
   MEASURE(rolling_12_month_revenue) AS rolling_12_month_revenue,
+  MEASURE(next_month_revenue) AS next_month_revenue,
   MEASURE(prior_year_revenue) AS prior_year_revenue,
   MEASURE(yoy_revenue_growth_pct) AS yoy_revenue_growth_pct
 FROM finance_metric_view
@@ -1067,7 +1286,56 @@ ORDER BY fiscal_month, region
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 9. Semiadditive Balances
+# MAGIC ### Inclusive vs Exclusive Trailing Windows
+# MAGIC
+# MAGIC The docs call out that `trailing` and `leading` windows can include or exclude the anchor row. This query compares `trailing 3 month exclusive` with `trailing 3 month inclusive`.
+
+# COMMAND ----------
+
+display(
+    spark.sql(
+        """
+SELECT
+  fiscal_month,
+  region,
+  MEASURE(current_month_revenue) AS current_month_revenue,
+  MEASURE(trailing_3_month_revenue_exclusive) AS trailing_3_exclusive,
+  MEASURE(trailing_3_month_revenue_inclusive) AS trailing_3_inclusive
+FROM finance_metric_view
+WHERE fiscal_month BETWEEN DATE'2025-01-01' AND DATE'2025-06-01'
+GROUP BY ALL
+ORDER BY fiscal_month, region
+"""
+    )
+)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 10. Cross-Metric-View Composability
+
+# COMMAND ----------
+
+display(
+    spark.sql(
+        """
+SELECT
+  fiscal_month,
+  region,
+  MEASURE(revenue_per_transaction) AS revenue_per_transaction,
+  MEASURE(executive_score) AS executive_score
+FROM finance_exec_metric_view
+WHERE fiscal_year = 2025
+GROUP BY ALL
+ORDER BY fiscal_month, region
+"""
+    )
+)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 11. Semiadditive Balances
 # MAGIC
 # MAGIC Balances should sum across business dimensions but not across months. `month_end_balance` uses `range: current` and `semiadditive: last`.
 
@@ -1093,7 +1361,7 @@ ORDER BY fiscal_quarter, entity_name, account_category
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 10. Dashboard-Ready Executive Query
+# MAGIC ## 12. Dashboard-Ready Executive Query
 
 # COMMAND ----------
 
@@ -1119,7 +1387,7 @@ ORDER BY fiscal_month, region
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 11. Materialization
+# MAGIC ## 13. Materialization
 # MAGIC
 # MAGIC If `enable_materialization` is set to `true`, the Metric View includes a materialization block with one unaggregated materialization and multiple aggregated materializations.
 # MAGIC
@@ -1136,7 +1404,7 @@ else:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 12. Verify Materialization Usage
+# MAGIC ## 14. Verify Materialization Usage
 # MAGIC
 # MAGIC Run `EXPLAIN EXTENDED` after materialization refresh completes. If query rewrite uses a materialization, the plan should include a materialization name such as `exec_month_region_category`.
 
@@ -1161,7 +1429,44 @@ print("\n".join(row[0] for row in explain_rows))
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 13. Genie-Style Questions
+# MAGIC ### Materialization Match Scenarios
+# MAGIC
+# MAGIC The materialization documentation describes exact match, rollup match, and unaggregated fallback. The queries below are designed to be inspected with `EXPLAIN EXTENDED` after materialization refresh:
+# MAGIC
+# MAGIC - Exact match: same dimensions as `exec_month_region_category`.
+# MAGIC - Rollup match: fewer dimensions than the materialization, using additive measures.
+# MAGIC - Unaggregated fallback: a non-additive `COUNT(DISTINCT)` measure that should not roll up from an aggregated materialization.
+
+# COMMAND ----------
+
+for label, query in {
+    "exact_match": """
+      SELECT fiscal_month, region, account_category, MEASURE(actual_revenue) AS actual_revenue
+      FROM finance_metric_view
+      WHERE fiscal_year = 2025
+      GROUP BY ALL
+    """,
+    "rollup_match": """
+      SELECT fiscal_month, region, MEASURE(actual_revenue) AS actual_revenue
+      FROM finance_metric_view
+      WHERE fiscal_year = 2025
+      GROUP BY ALL
+    """,
+    "unaggregated_or_source_fallback": """
+      SELECT fiscal_month, region, MEASURE(transaction_count) AS transaction_count
+      FROM finance_metric_view
+      WHERE fiscal_year = 2025
+      GROUP BY ALL
+    """,
+}.items():
+    print(f"--- {label} ---")
+    rows = spark.sql(f"EXPLAIN EXTENDED {query}").collect()
+    print("\n".join(row[0] for row in rows[:1]))
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## 15. Genie-Style Questions
 # MAGIC
 # MAGIC The agent metadata in this Metric View should help natural language tools interpret business terms. Try prompts like:
 # MAGIC

@@ -1,0 +1,147 @@
+Documentation coverage matrix
+
+References:
+
+1. Advanced techniques for metric views
+   https://docs.databricks.com/aws/en/business-semantics/metric-views/advanced-techniques
+
+2. Use level of detail expressions in metric views
+   https://docs.databricks.com/aws/en/business-semantics/metric-views/level-of-detail
+
+3. Materialization for metric views
+   https://docs.databricks.com/aws/en/business-semantics/metric-views/materialization
+
+Advanced techniques coverage:
+
+- Window measure required fields: order, range, semiadditive
+  Covered in finance_metric_view measures:
+  current_month_revenue, ytd_revenue, rolling_12_month_revenue,
+  prior_year_revenue, month_end_balance.
+
+- current range
+  Covered by current_month_revenue and month_end_balance.
+
+- cumulative range
+  Covered by running_total_revenue and ytd_revenue.
+
+- trailing range
+  Covered by rolling_12_month_revenue and trailing_3_month_revenue_exclusive.
+
+- trailing inclusive and exclusive modifiers
+  Covered by trailing_3_month_revenue_inclusive and trailing_3_month_revenue_exclusive.
+
+- leading range
+  Covered by next_month_revenue.
+
+- all range
+  Covered by all_account_categories_revenue, region_revenue_excluding_entity,
+  and revenue_excluding_entity_and_product_family.
+
+- offset for period-over-period
+  Covered by prior_year_revenue with offset: -12 month.
+
+- Period-over-period composition
+  Covered by yoy_revenue_growth and yoy_revenue_growth_pct.
+
+- Period-to-date with multiple window specs
+  Covered by ytd_revenue using fiscal_month cumulative and fiscal_year_start current.
+
+- Semiadditive measure
+  Covered by month_end_balance using range: current and semiadditive: last.
+
+- Date hierarchy warning
+  Covered in the notebook text. fiscal_month and fiscal_year_start are Metric View fields
+  used as window order fields for time-aware calculations.
+
+- Composability within a Metric View
+  Covered by gross_profit, ebitda, ebitda_margin_pct, revenue_variance,
+  revenue_variance_pct, yoy_revenue_growth, and yoy_revenue_growth_pct.
+
+- Composability with conditional logic
+  Covered by filtered atomic measures such as actual_revenue, actual_cogs,
+  actual_opex, budget_revenue, and composed ratios built on top of them.
+
+- Composability across Metric Views
+  Covered by sql/04_create_derived_exec_metric_view.sql and the notebook section
+  that creates finance_exec_metric_view from finance_metric_view.
+
+LOD coverage:
+
+- Fixed LOD syntax using SQL window functions in field expressions
+  Covered by global_revenue_lod, account_category_revenue_lod,
+  and product_family_revenue_lod.
+
+- Dataset-level aggregate
+  Covered by global_revenue_lod and pct_of_global_revenue_fixed_lod.
+
+- Multi-level hierarchy aggregate
+  Covered by account_category_revenue_lod and product_family_revenue_lod.
+
+- ANY_VALUE wrapper for fixed LOD fields in measures
+  Covered by pct_of_global_revenue_fixed_lod,
+  pct_of_account_category_revenue_fixed_lod,
+  and pct_of_product_family_revenue_fixed_lod.
+
+- Fixed LOD filtering behavior
+  Covered by the notebook fixed LOD filtering section and sql/03_validation_queries.sql.
+  The query filters to APJ while using a fixed global denominator.
+
+- Coarser LOD using range: all
+  Covered by all_account_categories_revenue and pct_of_visible_total_revenue_coarser_lod.
+
+- Coarser LOD excluding one field
+  Covered by region_revenue_excluding_entity and pct_of_region_revenue.
+
+- Coarser LOD excluding multiple fields
+  Covered by revenue_excluding_entity_and_product_family and
+  pct_of_entity_product_visible_total.
+
+- Filter-aware coarser LOD
+  Covered by queries that filter fiscal_year and region while calculating broader denominators.
+
+Materialization coverage:
+
+- Public Preview and runtime/serverless requirements
+  Covered in PLAN.md, notebook Materialization section, and REPO_GUIDE.txt.
+
+- Definition phase with Metric View YAML materialization block
+  Covered in finance_metric_view materialization YAML.
+
+- Query execution with aggregate-aware query rewrite
+  Covered in notebook materialization verification and dashboard_queries/05_materialization_verification.sql.
+
+- mode: relaxed
+  Covered in finance_metric_view materialization YAML.
+
+- schedule
+  Covered with schedule: every 6 hours.
+
+- unaggregated materialization
+  Covered by semantic_base_snapshot.
+
+- aggregated materialization
+  Covered by exec_month_region_category, drilldown_month_region_product_account,
+  and balance_month_entity_category.
+
+- Exact match
+  Covered by exact match EXPLAIN queries using fiscal_month, region, account_category.
+
+- Rollup match
+  Covered by rollup EXPLAIN queries using fiscal_month and region.
+
+- Unaggregated fallback
+  Covered by non-additive transaction_count EXPLAIN query.
+
+- Additive measure constraints
+  Covered by using additive measures in aggregated materializations and calling out
+  transaction_count as a non-additive COUNT(DISTINCT) fallback scenario.
+
+- Manual refresh
+  Covered by REFRESH MATERIALIZED VIEW in notebook and dashboard_queries/05_materialization_verification.sql.
+
+- Inspect refresh status
+  Covered by DESCRIBE EXTENDED finance_metric_view in notebook and sql/03_validation_queries.sql.
+
+- Known restrictions
+  Covered in PLAN.md and blog_outline.txt: serverless, runtime, RLS/CLM/ABAC,
+  invoker-dependent expressions, and one-to-many exact-match-only behavior.

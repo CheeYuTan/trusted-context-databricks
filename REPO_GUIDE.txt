@@ -21,6 +21,10 @@ Main files:
 - sql/03_validation_queries.sql
   Validation queries for LOD, windows, semiadditive balances, and materialization verification.
 
+- sql/04_create_derived_exec_metric_view.sql
+  Demonstrates composability across Metric Views by creating an executive Metric View
+  sourced from finance_metric_view.
+
 - dashboard_queries/
   Query files designed to become AI/BI Dashboard datasets.
 
@@ -28,7 +32,7 @@ Main files:
   Mermaid diagram sources for ERD, grain map, semantic architecture, and materialization flow.
 
 - docs/
-  Blog outline and screenshot checklist in plain text.
+  Blog outline, screenshot checklist, and documentation coverage matrix in plain text.
 
 Suggested run path:
 
@@ -36,8 +40,9 @@ Suggested run path:
 2. Set the catalog and schema widgets.
 3. Run once with enable_materialization=false to validate the core Metric View.
 4. Re-run with enable_materialization=true on a supported serverless/runtime setup.
-5. Use dashboard_queries/ to create AI/BI Dashboard datasets.
-6. Capture screenshots listed in docs/screenshot_checklist.txt for the blog.
+5. Inspect docs/documentation_coverage_matrix.txt to confirm the documented scenarios are covered.
+6. Use dashboard_queries/ to create AI/BI Dashboard datasets.
+7. Capture screenshots listed in docs/screenshot_checklist.txt for the blog.
 
 Primary references:
 

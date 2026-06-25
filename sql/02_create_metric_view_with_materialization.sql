@@ -125,6 +125,18 @@ fields:
         places: 2
       abbreviation: compact
 
+  - name: product_family_revenue_lod
+    expr: SUM(CASE WHEN source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue' THEN amount ELSE 0 END) OVER (PARTITION BY product_family)
+    comment: Fixed LOD field for actual revenue by product family.
+    display_name: Product Family Revenue LOD
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
 measures:
   - name: actual_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
@@ -243,6 +255,16 @@ measures:
         type: exact
         places: 2
 
+  - name: transaction_count
+    expr: COUNT(DISTINCT source_record_id) FILTER (WHERE source_grain = 'GL')
+    display_name: Transaction Count
+    format:
+      type: number
+      decimal_places:
+        type: exact
+        places: 0
+      abbreviation: compact
+
   - name: pct_of_global_revenue_fixed_lod
     expr: MEASURE(actual_revenue) / NULLIF(ANY_VALUE(global_revenue_lod), 0)
     comment: Fixed LOD percentage using a global denominator.
@@ -257,6 +279,16 @@ measures:
     expr: MEASURE(actual_revenue) / NULLIF(ANY_VALUE(account_category_revenue_lod), 0)
     comment: Fixed LOD percentage using account-category denominator.
     display_name: Percent of Account Category Revenue
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 2
+
+  - name: pct_of_product_family_revenue_fixed_lod
+    expr: MEASURE(actual_revenue) / NULLIF(ANY_VALUE(product_family_revenue_lod), 0)
+    comment: Fixed LOD percentage using product-family denominator.
+    display_name: Percent of Product Family Revenue
     format:
       type: percentage
       decimal_places:
@@ -314,6 +346,35 @@ measures:
         type: exact
         places: 2
 
+  - name: revenue_excluding_entity_and_product_family
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: entity_name
+        range: all
+        semiadditive: last
+      - order: product_family
+        range: all
+        semiadditive: last
+    comment: Coarser LOD denominator that excludes multiple fields from the query grain.
+    display_name: Revenue Excluding Entity and Product Family
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
+  - name: pct_of_entity_product_visible_total
+    expr: MEASURE(actual_revenue) / NULLIF(MEASURE(revenue_excluding_entity_and_product_family), 0)
+    comment: Demonstrates excluding multiple fields with range all.
+    display_name: Percent of Entity/Product Visible Total
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 2
+
   - name: current_month_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
     window:
@@ -350,6 +411,22 @@ measures:
       - year to date sales
       - ytd sales
 
+  - name: running_total_revenue
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: cumulative
+        semiadditive: last
+    comment: Cumulative revenue across the full available time range.
+    display_name: Running Total Revenue
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
   - name: rolling_12_month_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
     window:
@@ -367,6 +444,54 @@ measures:
     synonyms:
       - r12 revenue
       - trailing twelve month revenue
+
+  - name: trailing_3_month_revenue_exclusive
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: trailing 3 month exclusive
+        semiadditive: last
+    comment: Trailing 3 months excluding the anchor month.
+    display_name: Trailing 3 Month Revenue Exclusive
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
+  - name: trailing_3_month_revenue_inclusive
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: trailing 3 month inclusive
+        semiadditive: last
+    comment: Trailing 3 months including the anchor month.
+    display_name: Trailing 3 Month Revenue Inclusive
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
+  - name: next_month_revenue
+    expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')
+    window:
+      - order: fiscal_month
+        range: leading 1 month
+        semiadditive: first
+    comment: Leading window example. Returns the next month's revenue when grouped by fiscal month.
+    display_name: Next Month Revenue
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
 
   - name: prior_year_revenue
     expr: SUM(amount) FILTER (WHERE source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue')

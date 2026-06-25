@@ -29,6 +29,7 @@ The tutorial focuses on four new or improved areas:
 - Dashboard-ready SQL queries
 - Diagram source files
 - A blog outline and screenshot checklist
+- A documentation coverage matrix that maps each referenced Databricks scenario to a concrete repo asset
 - A GitHub repository under `CheeYuTan`
 
 ## Repository Name
@@ -108,10 +109,12 @@ Examples:
 - Percent of total revenue by account category
 - Entity revenue compared with global revenue
 - Product revenue compared with product-family revenue
+- Fixed global denominator behavior under query-time filters
 
 Lesson:
 
 Fixed LOD calculates at a predefined grain, regardless of query groupings.
+Fixed LOD fields are computed before query-time filters. If a filter should affect the fixed LOD calculation, the filter condition must be encoded inside the LOD field expression with `CASE` or `FILTER`.
 
 ### Coarser LOD
 
@@ -122,22 +125,27 @@ Examples:
 - Percent of total revenue while querying by account category
 - Percent of region revenue while querying by entity
 - Percent of product-family revenue while querying by product
+- Percent of visible total while excluding multiple fields, such as entity and product family
 
 Lesson:
 
 Coarser LOD can adapt to query-time filters while calculating at a broader grain than the visible dashboard grouping.
+To exclude multiple fields, define multiple `window` entries with `range: all`.
 
 ## Window Semantics Showcase
 
 Demonstrate advanced window and composability patterns:
 
 - Current month revenue
+- Running total revenue
 - YTD revenue using multiple window specifications
 - Rolling 12-month revenue
 - Prior-year revenue using `offset: -12 month`
 - YoY growth and YoY growth %
 - Inclusive vs exclusive trailing windows
+- Leading window example with next-month revenue
 - Semiadditive month-end balances with `range: current` and `semiadditive: last`
+- Cross-Metric-View composability using a derived executive Metric View
 
 Important modeling note:
 
@@ -183,8 +191,10 @@ Show:
 - Exact match
 - Rollup match
 - Unaggregated fallback
+- Additive vs non-additive measure behavior
 - `EXPLAIN EXTENDED` for materialization verification
 - `REFRESH MATERIALIZED VIEW` for manual refresh
+- `DESCRIBE EXTENDED` for refresh information
 
 Call out restrictions:
 
@@ -192,6 +202,7 @@ Call out restrictions:
 - Databricks Runtime 17.3 or above is required
 - Feature is in Public Preview
 - RLS, column masking, and ABAC policies are not supported with materialization
+- Invoker-dependent expressions are not supported
 - Metric views with one-to-many joins only support exact match for materialization
 
 ## Dashboard Showcase

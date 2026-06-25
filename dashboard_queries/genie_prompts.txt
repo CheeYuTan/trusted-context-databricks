@@ -8,3 +8,7 @@ Suggested Genie-style prompts for the demo:
 6. Show rolling 12 month revenue by product family.
 7. Which product family has the largest negative budget variance?
 8. Show EBITDA margin by region and customer segment.
+9. Show the difference between trailing 3 month inclusive and exclusive revenue.
+10. Show each entity's percent contribution to APJ revenue.
+11. Show revenue per transaction by region.
+12. Show running total revenue and YTD revenue side by side.
