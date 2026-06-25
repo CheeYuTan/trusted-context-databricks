@@ -28,6 +28,12 @@ Main files:
 - dashboard_queries/
   Query files designed to become AI/BI Dashboard datasets.
 
+- scripts/run_lakemeter_sql.py
+  Reproducible Lakemeter runner. It gets a short-lived token from the
+  `lakemeter` Databricks CLI profile, rewrites the default catalog to
+  `lakemeter_catalog`, and runs the setup, Metric View, derived Metric View,
+  and validation SQL files through the SQL Statements API.
+
 - assets/
   Mermaid diagram sources for ERD, grain map, semantic architecture, and materialization flow.
 
@@ -43,6 +49,10 @@ Suggested run path:
 5. Inspect docs/documentation_coverage_matrix.txt to confirm the documented scenarios are covered.
 6. Use dashboard_queries/ to create AI/BI Dashboard datasets.
 7. Capture screenshots listed in docs/screenshot_checklist.txt for the blog.
+
+Lakemeter run path:
+
+python3 scripts/run_lakemeter_sql.py
 
 Primary references:
 
