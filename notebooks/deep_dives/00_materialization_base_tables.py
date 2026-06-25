@@ -48,7 +48,9 @@ def render_mermaid(diagram: str) -> None:
 # MAGIC %md
 # MAGIC ## Data Model
 # MAGIC
-# MAGIC This notebook creates only physical fact and dimension tables. It does **not** create a pre-joined semantic view, because the next notebook uses Metric View `joins` to define those relationships.
+# MAGIC We will use a simple star schema: one daily finance fact table surrounded by calendar, entity, product, segment, and account dimensions.
+# MAGIC
+# MAGIC This gives us a realistic source model for the materialization deep dive. In the next notebook, the Metric View will define how these tables relate and then materialize the prepared model for faster queries.
 
 # COMMAND ----------
 
