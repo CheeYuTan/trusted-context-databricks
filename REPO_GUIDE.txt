@@ -9,14 +9,24 @@ Main files:
 - PLAN.md
   The approved project plan and article direction.
 
-- notebooks/01_metric_views_lod_finance_semantics.py
-  Databricks source notebook. Import this into a Databricks workspace and run it end to end.
+- notebooks/01_generate_synthetic_finance_data.py
+  Builds and explains the synthetic finance dataset, grains, dimensions, facts, and semantic base view.
+
+- notebooks/02_design_metric_view_semantic_layer.py
+  Teaches the Metric View definition section by section: fields, fixed LOD, atomic measures,
+  composed measures, coarser LOD, windows, semiadditive balances, and agent metadata.
+
+- notebooks/03_query_lod_windows_and_materialization.py
+  Runs LOD/window queries and creates a separate materialized Metric View variant for performance comparison.
+
+- notebooks/04_dashboard_story.py
+  Explains and validates the dashboard datasets that map the semantic layer into dashboard pages.
 
 - sql/01_create_demo_data.sql
   Standalone SQL setup for dimensions, fact tables, and the semantic base view.
 
-- sql/02_create_metric_view_with_materialization.sql
-  Standalone Metric View DDL with LOD, window semantics, agent metadata, and materialization.
+- sql/02_create_base_metric_view.sql
+  Standalone base Metric View DDL with LOD, window semantics, and agent metadata.
 
 - sql/03_validation_queries.sql
   Validation queries for LOD, windows, semiadditive balances, and materialization verification.
@@ -25,8 +35,13 @@ Main files:
   Demonstrates composability across Metric Views by creating an executive Metric View
   sourced from finance_metric_view.
 
+- sql/05_create_materialized_metric_view_for_comparison.sql
+  Creates a separate materialized Metric View variant for performance comparison.
+
 - dashboard_queries/
-  Query files designed to become AI/BI Dashboard datasets.
+  Query files designed to become AI/BI Dashboard datasets, plus
+  aibi_dashboard_definition.json with the Lakemeter exported dashboard definition
+  and aibi_dashboard_template.json with portable placeholders.
 
 - scripts/run_lakemeter_sql.py
   Reproducible Lakemeter runner. It gets a short-lived token from the
@@ -42,13 +57,18 @@ Main files:
 
 Suggested run path:
 
-1. Import notebooks/01_metric_views_lod_finance_semantics.py into Databricks.
-2. Set the catalog and schema widgets.
-3. Run once with enable_materialization=false to validate the core Metric View.
-4. Re-run with enable_materialization=true on a supported serverless/runtime setup.
-5. Inspect docs/documentation_coverage_matrix.txt to confirm the documented scenarios are covered.
-6. Use dashboard_queries/ to create AI/BI Dashboard datasets.
-7. Capture screenshots listed in docs/screenshot_checklist.txt for the blog.
+1. Import the split notebooks into Databricks.
+2. Run the split notebook flow:
+   - notebooks/01_generate_synthetic_finance_data.py
+   - notebooks/02_design_metric_view_semantic_layer.py
+   - notebooks/03_query_lod_windows_and_materialization.py
+   - notebooks/04_dashboard_story.py
+3. Set the catalog and schema widgets.
+4. Run notebooks 01 and 02 first to understand the model and base Metric View.
+5. Run notebook 03 to introduce materialization as an optimization strategy.
+6. Inspect docs/documentation_coverage_matrix.txt to confirm the documented scenarios are covered.
+7. Use dashboard_queries/ to create AI/BI Dashboard datasets.
+8. Capture screenshots listed in docs/screenshot_checklist.txt for the blog.
 
 Lakemeter run path:
 

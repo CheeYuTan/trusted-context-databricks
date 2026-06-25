@@ -1,6 +1,7 @@
 -- Creates the main tutorial Metric View with LOD expressions, window semantics,
--- agent metadata, and materialization.
--- Requires serverless compute for materialization.
+-- and agent metadata.
+-- This base Metric View is intentionally not materialized. Materialization is
+-- introduced separately in the query/performance notebook.
 
 USE CATALOG main;
 USE SCHEMA metric_views_lod_demo;
@@ -12,7 +13,7 @@ AS $$
 version: 1.1
 comment: |-
   Finance semantic model demonstrating LOD, window measures, agent metadata,
-  and materialization for Databricks Metric Views.
+  and governed business semantics for Databricks Metric Views.
 source: main.metric_views_lod_demo.finance_semantic_base
 
 fields:
@@ -24,7 +25,7 @@ fields:
       date_format: year_month_day
 
   - name: fiscal_month
-    expr: fiscal_month
+    expr: DATE_TRUNC('MONTH', event_date)
     display_name: Fiscal Month
     format:
       type: date
@@ -34,21 +35,21 @@ fields:
       - accounting month
 
   - name: fiscal_year_start
-    expr: fiscal_year_start
+    expr: make_date(year(event_date), 1, 1)
     display_name: Fiscal Year Start
     format:
       type: date
       date_format: year_month_day
 
   - name: fiscal_quarter
-    expr: fiscal_quarter
+    expr: concat(year(event_date), '-Q', quarter(event_date))
     display_name: Fiscal Quarter
     synonyms:
       - quarter
       - accounting quarter
 
   - name: fiscal_year
-    expr: fiscal_year
+    expr: year(event_date)
     display_name: Fiscal Year
     synonyms:
       - year
@@ -57,6 +58,10 @@ fields:
   - name: region
     expr: region
     display_name: Region
+
+  - name: country
+    expr: country
+    display_name: Country
 
   - name: entity_name
     expr: entity_name
@@ -71,9 +76,17 @@ fields:
     synonyms:
       - product group
 
+  - name: business_unit
+    expr: business_unit
+    display_name: Business Unit
+
   - name: product_name
     expr: product_name
     display_name: Product
+
+  - name: segment_group
+    expr: segment_group
+    display_name: Segment Group
 
   - name: segment_name
     expr: segment_name
@@ -129,6 +142,18 @@ fields:
     expr: SUM(CASE WHEN source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue' THEN amount ELSE 0 END) OVER (PARTITION BY product_family)
     comment: Fixed LOD field for actual revenue by product family.
     display_name: Product Family Revenue LOD
+    format:
+      type: currency
+      currency_code: SGD
+      decimal_places:
+        type: exact
+        places: 2
+      abbreviation: compact
+
+  - name: apj_revenue_lod
+    expr: SUM(CASE WHEN source_grain = 'GL' AND scenario_id = 'ACTUAL' AND account_category = 'Revenue' AND region = 'APJ' THEN amount ELSE 0 END) OVER ()
+    comment: Fixed LOD field with the APJ filter encoded inside the expression.
+    display_name: APJ Revenue LOD
     format:
       type: currency
       currency_code: SGD
@@ -289,6 +314,16 @@ measures:
     expr: MEASURE(actual_revenue) / NULLIF(ANY_VALUE(product_family_revenue_lod), 0)
     comment: Fixed LOD percentage using product-family denominator.
     display_name: Percent of Product Family Revenue
+    format:
+      type: percentage
+      decimal_places:
+        type: exact
+        places: 2
+
+  - name: pct_of_apj_revenue_fixed_lod
+    expr: MEASURE(actual_revenue) / NULLIF(ANY_VALUE(apj_revenue_lod), 0)
+    comment: Fixed LOD percentage where the APJ denominator is encoded in the LOD field.
+    display_name: Percent of APJ Revenue Fixed LOD
     format:
       type: percentage
       decimal_places:
@@ -558,43 +593,4 @@ measures:
     synonyms:
       - closing balance
       - ending balance
-
-materialization:
-  schedule: every 6 hours
-  mode: relaxed
-  materialized_views:
-    - name: semantic_base_snapshot
-      type: unaggregated
-    - name: exec_month_region_category
-      type: aggregated
-      dimensions:
-        - fiscal_month
-        - region
-        - account_category
-      measures:
-        - actual_revenue
-        - actual_expense
-        - actual_cogs
-        - actual_opex
-    - name: drilldown_month_region_product_account
-      type: aggregated
-      dimensions:
-        - fiscal_month
-        - region
-        - entity_name
-        - product_family
-        - account_category
-      measures:
-        - actual_revenue
-        - actual_expense
-        - actual_cogs
-        - actual_opex
-    - name: balance_month_entity_category
-      type: aggregated
-      dimensions:
-        - fiscal_month
-        - entity_name
-        - account_category
-      measures:
-        - balance_additive_snapshot
 $$;

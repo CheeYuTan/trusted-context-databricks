@@ -96,6 +96,8 @@ Create one main YAML 1.1 Metric View that includes:
 - Conditional measures using `FILTER`
 - Safe ratios using `MEASURE()` composability
 
+The main Metric View should not include materialization. It is the semantic contract. A separate materialized variant is introduced later for performance comparison.
+
 ## LOD Showcase
 
 Demonstrate both LOD patterns from the Databricks LOD documentation.
@@ -173,7 +175,7 @@ Agent metadata improves dashboard labels and helps natural language tools such a
 
 ## Materialization Showcase
 
-Add a `materialization` block to the Metric View:
+Create a separate materialized Metric View variant:
 
 - One `unaggregated` materialization for expensive joins and source preparation
 - Multiple `aggregated` materializations for common dashboard query shapes
@@ -204,6 +206,15 @@ Call out restrictions:
 - RLS, column masking, and ABAC policies are not supported with materialization
 - Invoker-dependent expressions are not supported
 - Metric views with one-to-many joins only support exact match for materialization
+
+## Notebook Structure
+
+Split the teaching flow into four notebooks:
+
+- `01_generate_synthetic_finance_data.py`: data model, grain explanation, Mermaid ERD, and synthetic data generation.
+- `02_design_metric_view_semantic_layer.py`: Metric View definition explained section by section.
+- `03_query_lod_windows_and_materialization.py`: LOD/window queries and materialized-vs-non-materialized comparison.
+- `04_dashboard_story.py`: dashboard page design and dataset validation.
 
 ## Dashboard Showcase
 

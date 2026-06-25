@@ -27,6 +27,7 @@ Article structure:
    - Define fields for fiscal and business hierarchies.
    - Define atomic measures first.
    - Use MEASURE() composability for gross profit, EBITDA, margin, variance, and growth.
+   - Keep the base Metric View non-materialized so semantic modeling and performance optimization are taught separately.
 
 5. Fixed LOD expressions
    - Show global revenue and account-category revenue as fixed LOD fields.
@@ -63,6 +64,7 @@ Article structure:
    - Explain why this matters for dashboards and Genie.
 
 10. Materialization
+   - Create a separate materialized Metric View variant for comparison.
    - Add an unaggregated materialization for expensive source preparation.
    - Add aggregated materializations for executive and drilldown dashboard shapes.
    - Explain exact match, rollup match, and unaggregated fallback.

@@ -80,8 +80,12 @@ def split_sql(sql: str) -> list[str]:
 def normalize_sql(sql: str, catalog: str, schema: str) -> str:
     return (
         sql.replace("USE CATALOG main;", f"USE CATALOG {catalog};")
+        .replace(
+            "CREATE SCHEMA IF NOT EXISTS metric_views_lod_demo;",
+            f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema};",
+        )
+        .replace("USE SCHEMA metric_views_lod_demo;", f"USE SCHEMA {schema};")
         .replace("main.metric_views_lod_demo", f"{catalog}.{schema}")
-        .replace("CREATE SCHEMA IF NOT EXISTS metric_views_lod_demo;", "")
     )
 
 
@@ -170,8 +174,9 @@ def main() -> int:
         nargs="+",
         default=[
             "sql/01_create_demo_data.sql",
-            "sql/02_create_metric_view_with_materialization.sql",
+            "sql/02_create_base_metric_view.sql",
             "sql/04_create_derived_exec_metric_view.sql",
+            "sql/05_create_materialized_metric_view_for_comparison.sql",
             "sql/03_validation_queries.sql",
         ],
     )

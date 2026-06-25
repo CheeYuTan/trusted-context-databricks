@@ -25,7 +25,8 @@ SELECT
   product_family,
   MEASURE(actual_revenue) AS actual_revenue,
   MEASURE(pct_of_global_revenue_fixed_lod) AS pct_of_global_revenue,
-  MEASURE(pct_of_product_family_revenue_fixed_lod) AS pct_of_product_family_revenue
+  MEASURE(pct_of_product_family_revenue_fixed_lod) AS pct_of_product_family_revenue,
+  MEASURE(pct_of_apj_revenue_fixed_lod) AS pct_of_apj_revenue
 FROM finance_metric_view
 WHERE fiscal_year = 2025
   AND region = 'APJ'
@@ -99,32 +100,37 @@ GROUP BY ALL
 ORDER BY fiscal_quarter, entity_name, account_category;
 
 -- Materialization verification. Look for materialization names in the plan.
+-- This uses the separate materialized variant. The base finance_metric_view
+-- is intentionally non-materialized.
 EXPLAIN EXTENDED
 SELECT
+  fiscal_year,
   fiscal_month,
   region,
   account_category,
   MEASURE(actual_revenue) AS actual_revenue
-FROM finance_metric_view
+FROM finance_metric_view_materialized
 WHERE fiscal_year = 2025
 GROUP BY ALL;
 
 -- Rollup match candidate: fewer dimensions than the materialization, additive measure.
 EXPLAIN EXTENDED
 SELECT
+  fiscal_year,
   fiscal_month,
   region,
   MEASURE(actual_revenue) AS actual_revenue
-FROM finance_metric_view
+FROM finance_metric_view_materialized
 WHERE fiscal_year = 2025
 GROUP BY ALL;
 
 -- Unaggregated/source fallback candidate: non-additive COUNT(DISTINCT) measure.
 EXPLAIN EXTENDED
 SELECT
+  fiscal_year,
   fiscal_month,
   region,
   MEASURE(transaction_count) AS transaction_count
-FROM finance_metric_view
+FROM finance_metric_view_materialized
 WHERE fiscal_year = 2025
 GROUP BY ALL;
