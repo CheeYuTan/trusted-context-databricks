@@ -10,6 +10,27 @@ Analytics engineers, BI developers, and data platform teams who want governed me
 Core takeaway:
 Metric View materialization separates what a metric means from how it is physically accelerated. Users keep querying the Metric View with `MEASURE()`, while Databricks can route matching queries to precomputed materializations.
 
+## Opening: AI Still Needs Business Context
+
+Genie and Ontology make it much easier for business users to ask questions in natural language, but they do not create business context out of nowhere.
+
+An AI system can only reason over the context it is given:
+
+- Which fields are safe to group by?
+- What does “revenue” actually mean?
+- Which filters define actuals, budget, or forecast?
+- Which joins connect the fact table to product, entity, customer segment, and calendar dimensions?
+- Which metrics can be rolled up safely?
+- Which metrics require special handling, like distinct counts or balances?
+
+This is where Metric Views become important.
+
+Metric Views give the lakehouse a governed business semantic layer. They define reusable fields, measures, joins, metadata, and calculation rules in Unity Catalog. That context can then be used consistently by SQL users, dashboards, BI tools, and AI/BI experiences.
+
+This post starts a deep-dive series on Metric Views from that perspective: not just “how do I write YAML?”, but “how do I create reliable business context that both people and AI systems can use?”
+
+We will begin with materialization because once a semantic layer becomes useful, people will query it repeatedly. The next question is obvious: how do we keep governed metrics fast without making users choose between raw tables, aggregate tables, and dashboard-specific extracts?
+
 ## Why This Needs Its Own Base Table Setup
 
 Materialization is a performance feature. A tiny sample table does not teach the real problem.
