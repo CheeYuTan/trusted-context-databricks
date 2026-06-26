@@ -392,6 +392,10 @@ flowchart TB
 # MAGIC ```text
 # MAGIC month_region_product_account
 # MAGIC ```
+# MAGIC
+# MAGIC ![Exact match Query Profile](https://raw.githubusercontent.com/CheeYuTan/metric-views-lod-finance-semantics/main/assets/query_profiles/exact_match.png)
+# MAGIC
+# MAGIC In this screenshot, the scan reads the generated table ending in `month_region_product_account_1`. There is no extra aggregation above the scan, because the query grain exactly matches the materialization grain.
 
 # COMMAND ----------
 
@@ -427,6 +431,10 @@ flowchart TB
 # MAGIC ```text
 # MAGIC month_region_product_account
 # MAGIC ```
+# MAGIC
+# MAGIC ![Rollup match Query Profile](https://raw.githubusercontent.com/CheeYuTan/metric-views-lod-finance-semantics/main/assets/query_profiles/rollup_match.png)
+# MAGIC
+# MAGIC In this screenshot, Databricks still scans `month_region_product_account_1`, but there is an additional `Grouping Aggregate` above the scan. That is the rollup from the more detailed materialization grain to the coarser query grain.
 
 # COMMAND ----------
 
@@ -456,6 +464,10 @@ flowchart TB
 # MAGIC ```text
 # MAGIC semantic_snapshot
 # MAGIC ```
+# MAGIC
+# MAGIC ![Unaggregated match Query Profile](https://raw.githubusercontent.com/CheeYuTan/metric-views-lod-finance-semantics/main/assets/query_profiles/unaggregated_match.png)
+# MAGIC
+# MAGIC In this screenshot, Databricks scans `semantic_snapshot_1`. This happens because `unique_customers` is a distinct count, which cannot safely roll up from the aggregated revenue materialization.
 
 # COMMAND ----------
 
@@ -479,6 +491,10 @@ flowchart TB
 # MAGIC Because it has no unaggregated materialization, a query that cannot use the aggregate must fall back to the source.
 # MAGIC
 # MAGIC The query below asks for `unique_customers`, but the only materialization in this view is `revenue_only_aggregate`. Since that aggregate cannot answer a distinct-customer query, Query Profile should not show `revenue_only_aggregate`.
+# MAGIC
+# MAGIC ![Source fallback Query Profile](https://raw.githubusercontent.com/CheeYuTan/metric-views-lod-finance-semantics/main/assets/query_profiles/source_fallback.png)
+# MAGIC
+# MAGIC In this screenshot, the plan expands back to the source path and scans the underlying fact and dimension tables required by the Metric View joins. This is the final fallback when no available materialization can answer the query.
 
 # COMMAND ----------
 
