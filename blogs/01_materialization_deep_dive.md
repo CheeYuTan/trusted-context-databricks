@@ -10,11 +10,13 @@ Analytics engineers, BI developers, and data platform teams who want governed me
 Core takeaway:
 Metric View materialization separates what a metric means from how it is physically accelerated. Users keep querying the Metric View with `MEASURE()`, while Databricks can route matching queries to precomputed materializations.
 
-## Opening: AI Still Needs Business Context
+## Opening: Genie Still Needs Business Context
 
-Genie and Ontology make it much easier for business users to ask questions in natural language, but they do not create business context out of nowhere.
+At DAIS 2026, Databricks introduced Genie Ontology as part of the broader Genie family. The Databricks announcement describes Genie Ontology as an automatic context layer: a living graph that extracts knowledge from tables, queries, dashboards, pipelines, connected apps, and other business artifacts so Genie knows where to look, what to trust, and how to answer with business context. It includes metric definitions, business terms, unique calculations, and relationships between concepts, metrics, tables, and teams. [Databricks: Introducing Genie One, Genie Agents, and Genie Ontology](https://www.databricks.com/blog/introducing-genie-one-genie-ontology-and-genie-agents)
 
-An AI system can only reason over the context it is given:
+That framing is important because it makes one thing very clear: AI does not create business context out of nowhere.
+
+An AI system can only reason over the context it can discover, rank, and trust:
 
 - Which fields are safe to group by?
 - What does “revenue” actually mean?
@@ -25,7 +27,7 @@ An AI system can only reason over the context it is given:
 
 This is where Metric Views become important.
 
-Metric Views give the lakehouse a governed business semantic layer. They define reusable fields, measures, joins, metadata, and calculation rules in Unity Catalog. That context can then be used consistently by SQL users, dashboards, BI tools, and AI/BI experiences.
+Metric Views give the lakehouse a governed business semantic layer. They define reusable fields, measures, joins, metadata, and calculation rules in Unity Catalog. In other words, they turn tribal dashboard logic into explicit semantic context that can be reused by SQL users, dashboards, BI tools, and AI/BI experiences.
 
 This post starts a deep-dive series on Metric Views from that perspective: not just “how do I write YAML?”, but “how do I create reliable business context that both people and AI systems can use?”
 
