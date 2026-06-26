@@ -31,11 +31,11 @@ This post starts a deep-dive series on Metric Views from that perspective: not j
 
 We will begin with materialization because once a semantic layer becomes useful, people will query it repeatedly. The next question is obvious: how do we keep governed metrics fast without making users choose between raw tables, aggregate tables, and dashboard-specific extracts?
 
-## Why This Needs Its Own Base Table Setup
+## Base Tables Used in This Series
 
-Materialization is a performance feature. A tiny sample table does not teach the real problem.
+Before defining any Metric View, we need a simple business data model that is easy to reason about.
 
-For this deep dive, the setup notebook creates a larger finance model:
+For this series, I will use a finance star schema with one daily fact table and a handful of dimensions:
 
 - `mat_fact_finance_daily`: just under 1 million daily finance rows.
 - `mat_dim_calendar`: date, month, quarter, year.
@@ -50,7 +50,17 @@ The fact table scale comes from:
 731 days x 6 entities x 15 products x 3 segments x 5 accounts = 986,850 rows
 ```
 
-That gives the optimizer something meaningful to accelerate without making the tutorial painfully slow to run.
+This model is still small enough to run quickly in a demo workspace, but large enough to make materialization visible in Query Profile.
+
+More importantly, the model gives us the business context we need for the whole series:
+
+- Calendar fields for time-based grouping.
+- Entity fields for region-level rollups.
+- Product fields for product-family drilldowns.
+- Segment fields for customer context.
+- Account fields for defining revenue, COGS, and Opex measures.
+
+The Metric View will define how these fact and dimension tables relate, then expose business-friendly fields and measures on top.
 
 [Insert Diagram 1: Star schema showing MAT_FACT_FINANCE_DAILY joined to calendar, entity, product, segment, and account dimensions. Rendered in notebook 00.]
 
