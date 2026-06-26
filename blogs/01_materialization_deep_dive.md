@@ -434,3 +434,7 @@ It is a production semantic-layer pattern:
 
 That is the difference between manually managing aggregate tables and operating a governed business semantic layer.
 
+The notebooks, query examples, and screenshots for this deep dive are available here:
+
+https://github.com/CheeYuTan/metric-views-deep-dive
+
