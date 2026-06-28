@@ -22,19 +22,25 @@ Notebook:
 
 - `notebooks/part2_metric_views/00_metric_views_certified_kpi_layer.py`
 
-### Part 4: Metric Views in Production
+### Part 3: Deep Dive Into Metric View Joins
+
+Notebook:
+
+- `notebooks/part3_metric_view_joins/00_metric_view_joins_deep_dive.py`
+
+### Part 4: Advanced Metric Semantics
+
+Notebook:
+
+- `notebooks/part4_advanced_semantics/01_lod_windows_agent_metadata.py`
+
+## Additional Deep Dive
+
+### Metric Views in Production
 
 [Databricks Metric Views Deep Dive Part 1: Materialization Without Breaking the Semantic Layer](https://medium.com/@cheeyutcy/databricks-metric-views-deep-dive-part-1-materialization-without-breaking-the-semantic-layer-a0da85c1926a?source=friends_link&sk=ab2c03b750fdc9b6f3376ee216587bdb)
 
 Notebooks:
 
-- `notebooks/part4_materialization/00_materialization_base_tables.py`
-- `notebooks/part4_materialization/01_materialization_deep_dive.py`
-
-## Planned
-
-### Part 3: Advanced Metric Semantics
-
-Notebook:
-
-- `notebooks/part3_advanced_semantics/00_level_of_detail_deep_dive.py`
+- `notebooks/part5_materialization/00_materialization_base_tables.py`
+- `notebooks/part5_materialization/01_materialization_deep_dive.py`
