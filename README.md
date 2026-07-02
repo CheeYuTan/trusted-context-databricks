@@ -24,19 +24,21 @@ Notebook:
 
 ### Part 3: Deep Dive Into Metric View Joins
 
+[Building Trusted Context in Databricks Part 3: Deep Dive Into Metric View Joins](https://medium.com/@cheeyutcy/building-trusted-context-in-databricks-part-3-deep-dive-into-metric-view-joins-6cc57d2f3938?source=friends_link&sk=9cf1bb61d85297d506de11dd2cb11944)
+
 Notebook:
 
 - `notebooks/part3_metric_view_joins/00_metric_view_joins_deep_dive.py`
 
 ### Part 4: Advanced Metric Semantics
 
+[Building Trusted Context in Databricks Part 4: Advanced Metric Semantics](https://medium.com/@cheeyutcy/building-trusted-context-in-databricks-part-4-advanced-metric-semantics-32500b2ce668?source=friends_link&sk=d792461f0356827e1c3add00b821752c)
+
 Notebook:
 
 - `notebooks/part4_advanced_semantics/01_lod_windows_agent_metadata.py`
 
-## Additional Deep Dive
-
-### Metric Views in Production
+### Part 5: Metric Views in Production
 
 [Databricks Metric Views Deep Dive Part 1: Materialization Without Breaking the Semantic Layer](https://medium.com/@cheeyutcy/databricks-metric-views-deep-dive-part-1-materialization-without-breaking-the-semantic-layer-a0da85c1926a?source=friends_link&sk=ab2c03b750fdc9b6f3376ee216587bdb)
 

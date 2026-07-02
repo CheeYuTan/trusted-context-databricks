@@ -2,8 +2,8 @@
 
 Subtitle:
 
-How Metric Views define level of detail, time-aware calculations, composed measures, and AI-friendly metadata in one governed semantic layer.
+How Metric Views make denominators, time windows, composed measures, and AI-friendly metadata part of one governed semantic layer.
 
 Core takeaway:
 
-Once a KPI is certified, the next question is how it should calculate in more complex analytical contexts.
+Certified KPIs are only the starting point. The next question is how those KPIs should calculate when people and agents ask more complex business questions.
